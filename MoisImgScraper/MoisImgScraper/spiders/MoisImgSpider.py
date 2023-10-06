@@ -20,8 +20,11 @@ class MoisImgSpider(scrapy.Spider):
     def parse(self, response):
         
         for image in response.css("ul.img_gallery_list li"):
+            item = MoisimgscraperItem()
+            thumbnail = image.css("img").attrib['src']
+            item['thumbnail_src'] = [self.home_url + thumbnail]
             post_href = image.css("li a").attrib['href']
-            yield response.follow(post_href, callback=self.parse_post)
+            yield response.follow(post_href, callback=self.parse_post, meta={"item_with_thumbnail" : item})
         
         # 아래는 페이지네이션 로직(구현완료)
         pagenate = response.css("div.pagenate")
@@ -76,15 +79,15 @@ class MoisImgSpider(scrapy.Spider):
         for file in file_list:
             file_href = file.css("a").attrib['href']
             files.append(self.home_url + file_href)
-        files_string = ",,,".join([x for x in files])
+        # files_string = ",,,".join([x for x in files])
 
         file_names_list = []
         for i in range(1, len(files)+1) :
             file_name = response.xpath(f'//*[@id="print_area"]/form/div[1]/dl[1]/dd/div/ul/li[{i}]/a[1]/text()')[1].get().split()[0]
             file_names_list.append(file_name)
-        file_names_string = ",,,".join([x for x in file_names_list])
+        # file_names_string = ",,,".join([x for x in file_names_list])
 
-        item = MoisimgscraperItem()
+        item = response.meta.get('item_with_thumbnail')
 
         id_big = response.url.split("bbsId=")[1]
         id_small = id_big.split("&nttId=")[0] + id_big.split("&nttId=")[1]
@@ -94,8 +97,8 @@ class MoisImgSpider(scrapy.Spider):
         item['created_date'] = created_date
         item['author'] = author
         item['contents'] = contents_string
-        item['files'] = files_string
-        item['file_names'] = file_names_string
+        item['file_urls'] = files
+        item['file_names'] = file_names_list
         item['crawled_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]
 
         yield item
@@ -115,4 +118,4 @@ class MoisImgSpider(scrapy.Spider):
         for image in response.css("ul.img_gallery_list li"):
             post_href = image.css("li a").attrib['href']
             yield response.follow(post_href, callback=self.parse_post)
-        print("\n\n\nParsing Every Post Done : {specified crawl date needed here}")
+        print(f"\n\n\nParsing Every Post Done : {datetime.now()}")

@@ -7,6 +7,13 @@ import scrapy
 
 
 class MoisnewsscraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    id = scrapy.Field()
+    subject = scrapy.Field()
+    subject_desc = scrapy.Field()
+    created_date = scrapy.Field()
+    author = scrapy.Field()
+    contents = scrapy.Field()
+    file_urls = scrapy.Field()
+    file_names = scrapy.Field()
+    crawled_date = scrapy.Field() 
+    file_results = scrapy.Field() 

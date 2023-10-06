@@ -14,7 +14,7 @@ NEWSPIDER_MODULE = "YnaNewsScraper.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -62,9 +62,34 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "YnaNewsScraper.pipelines.YnanewsscraperPipeline": 300,
-#}
+
+
+
+
+ITEM_PIPELINES = {
+   "YnaNewsScraper.pipelines.ThumbnailPipeline" : 10,
+   "YnaNewsScraper.pipelines.MyImagePipeline" : 50,
+   "YnaNewsScraper.pipelines.YnanewsscraperPipeline": 303,
+}
+# THUMBNAILPIPELINE_IMAGES_STORE = "thumbnails"
+# THUMBNAILPIPELINE__DOWNLOAD_DELAY = 0.5
+# THUMBNAILPIPELINE_IMAGES_URLS_FIELD = "thumbnail_src"
+# THUMBNAILPIPELINE_IMAGES_RESULT_FIELD = "thumbnails"
+
+IMAGES_STORE = "images"
+DOWNLOAD_DELAY = 0.5
+IMAGES_URLS_FIELD = "thumbnail_src"
+IMAGES_RESULT_FIELD = "thumbnails"
+
+
+MYIMAGEPIPELINE_IMAGES_STORE = "images"
+MYIMAGEPIPELINE_DOWNLOAD_DELAY = 0.5
+MYIMAGEPIPELINE_IMAGES_URLS_FIELD = "img_src"
+MYIMAGEPIPELINE_IMAGES_RESULT_FIELD = "imgs"
+
+
+
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

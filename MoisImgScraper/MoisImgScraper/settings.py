@@ -14,10 +14,9 @@ NEWSPIDER_MODULE = "MoisImgScraper.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "MoisImgScraper (+http://www.yourdomain.com)"
-
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -62,9 +61,23 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+
+
+
 ITEM_PIPELINES = {
-   "MoisImgScraper.pipelines.MoisimgscraperPipeline": 300,
+   "MoisImgScraper.pipelines.ThumbnailPipeline" : 20,
+   "MoisImgScraper.pipelines.MyImagePipeline": 30,
+   "MoisImgScraper.pipelines.MoisimgscraperPipeline": 301,
 }
+IMAGES_STORE = "images"
+DOWNLOAD_DELAY = 0.5
+IMAGES_URLS_FIELD = "thumbnail_src"
+IMAGES_RESULT_FIELD = "thumbnails"
+
+MYIMAGEPIPELINE_IMAGES_STORE = "images"
+MYIMAGEPIPELINE_DOWNLOAD_DELAY = 0.5
+MYIMAGEPIPELINE_IMAGES_URLS_FIELD = "file_urls"
+MYIMAGEPIPELINE_IMAGES_RESULT_FIELD = "imgs"
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

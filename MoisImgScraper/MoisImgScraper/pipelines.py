@@ -62,9 +62,25 @@ class MyImagePipeline(ImagesPipeline) :
         return image_filename
 
 class ThumbnailPipeline(ImagesPipeline) :
+    # def get_media_requests(self, item, info):
+    #     for idx, file_url in enumerate(item['file_urls']):  # 수집되어야할 파일들의 URL은 반드시 List 자료형으로 입력된다.
+    #         yield scrapy.Request(file_url, meta={'filename': item['filename'][idx]})
+
+    # def file_path(self, request, response=None, info=None, *, item=None):
+
+    #     image_name : str = request.meta['filename']
+    #     image_url_hash = hashlib.shake_256(request.url.encode()).hexdigest(5)
+    #     extension = request.url.split('.')[1]
+    #     directory_name = request.url.split("FILE_")[1][:6]
+
+    #     image_filename = f"thumbnail/{directory_name}/{image_url_hash}.{extension}"
+        
+    #     return image_filename
     def file_path(self, request, response=None, info=None, *, item=None):
+
+        
         image_url_hash = hashlib.shake_256(request.url.encode()).hexdigest(5)
-        extension = request.url.split('.')[1]
+        extension = 'jpg'
         directory_name = request.url.split("FILE_")[1][:6]
 
         image_filename = f"thumbnail/{directory_name}/{image_url_hash}.{extension}"

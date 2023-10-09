@@ -23,18 +23,18 @@ class YnaNewsSpider(scrapy.Spider):
     def start_requests(self):
         start_urls = [
             "https://www.yna.co.kr/politics/index?site=navi_politics_depth01",
-            # "https://www.yna.co.kr/north-korea/all?site=navi_nk_depth01",
-            # "https://www.yna.co.kr/economy/index?site=navi_economy_depth01",
-            # "https://www.yna.co.kr/industry/index?site=navi_industry_depth01",
-            # "https://www.yna.co.kr/society/index?site=navi_society_depth01",
-            # "https://www.yna.co.kr/local/index?site=navi_local_depth01",
-            # "https://www.yna.co.kr/international/index?site=navi_international_depth01",
-            # "https://www.yna.co.kr/culture/index?site=navi_culture_depth01",
-            # "https://www.yna.co.kr/lifestyle/index?site=navi_lifestyle_depth01",
-            # "https://www.yna.co.kr/entertainment/index?site=navi_entertainment_depth01",
-            # "https://www.yna.co.kr/sports/index?site=navi_sports_depth01",
-            # "https://www.yna.co.kr/opinion/index?site=navi_opinion_depth01",
-            # "https://www.yna.co.kr/people/index?site=navi_people_depth01",
+            "https://www.yna.co.kr/north-korea/all?site=navi_nk_depth01",
+            "https://www.yna.co.kr/economy/index?site=navi_economy_depth01",
+            "https://www.yna.co.kr/industry/index?site=navi_industry_depth01",
+            "https://www.yna.co.kr/society/index?site=navi_society_depth01",
+            "https://www.yna.co.kr/local/index?site=navi_local_depth01",
+            "https://www.yna.co.kr/international/index?site=navi_international_depth01",
+            "https://www.yna.co.kr/culture/index?site=navi_culture_depth01",
+            "https://www.yna.co.kr/lifestyle/index?site=navi_lifestyle_depth01",
+            "https://www.yna.co.kr/entertainment/index?site=navi_entertainment_depth01",
+            "https://www.yna.co.kr/sports/index?site=navi_sports_depth01",
+            "https://www.yna.co.kr/opinion/index?site=navi_opinion_depth01",
+            "https://www.yna.co.kr/people/index?site=navi_people_depth01",
 
         ]
         for url in start_urls:
@@ -89,10 +89,10 @@ class YnaNewsSpider(scrapy.Spider):
         next_page = current_page+1
 
         next_page_url = f"{next_page_frame}/{next_page}"
-        if (next_page < 1) :
+        if (next_page != 20) :
             yield response.follow(next_page_url, callback=self.parse_list)
         else :
-            yield
+            yield response.follow(next_page_url, callback=self.parse_last)
 
     def parse_post(self, response):
         item = response.meta.get("item_with_thumbnail")
@@ -129,7 +129,7 @@ class YnaNewsSpider(scrapy.Spider):
         articles = response.xpath('//*[@id="articleWrap"]/div[2]/div/div/article/p/text()')
         articles_list = []
         for paragraph in articles :
-            articles_list.append(re.sub("'", "''", paragraph.get().strip()))
+            articles_list.append(paragraph.get().strip())
         item['article'] = " ".join([x for x in articles_list]).strip()
 
         #tags
@@ -144,3 +144,19 @@ class YnaNewsSpider(scrapy.Spider):
         item['depth2'] = response.xpath('//*[@id="articleWrap"]/div[1]/header/ul[1]/li/*/text()')[2].get()
 
         yield item
+    def parse_last(self, response):
+        posts = response.css("div.section01 div.list-type038 ul.list li div.item-box01")
+
+        for post in posts:
+            #Thumbnail 저장해서 박는다.
+            item = YnanewsscraperItem()
+            
+            try :
+                thumbnail = ["http:" + post.css("figure.img-con a img").attrib["src"]]
+            except:
+                thumbnail = []
+            item['thumbnail_src'] = thumbnail
+            go_to_post = post.css("div.news-con a").attrib['href']
+            yield response.follow(go_to_post, callback=self.parse_post, meta={"item_with_thumbnail" : item})
+        
+        print("One of the Spiders in YnaNews Finished")

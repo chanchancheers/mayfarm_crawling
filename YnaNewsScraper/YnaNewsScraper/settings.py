@@ -14,8 +14,8 @@ NEWSPIDER_MODULE = "YnaNewsScraper.spiders"
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-
+# USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.24) Gecko/20111109 CentOS/3.6.24-3.el6.centos Firefox/47.0'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
@@ -45,7 +45,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-   'scrapy_deltafetch.DeltaFetch' : 100,
+   'YnaNewsScraper.middlewares.YnanewsscraperDeltaFetchSpiderMiddleware' : 100,
    "YnaNewsScraper.middlewares.YnanewsscraperSpiderMiddleware": 543,
 
 }
@@ -80,13 +80,13 @@ ITEM_PIPELINES = {
 # THUMBNAILPIPELINE_IMAGES_URLS_FIELD = "thumbnail_src"
 # THUMBNAILPIPELINE_IMAGES_RESULT_FIELD = "thumbnails"
 
-IMAGES_STORE = "images"
+IMAGES_STORE = "/root/crawled_data/yna/images"
 DOWNLOAD_DELAY = 0.5
 IMAGES_URLS_FIELD = "thumbnail_src"
 IMAGES_RESULT_FIELD = "thumbnails"
 
 
-MYIMAGEPIPELINE_IMAGES_STORE = "images"
+MYIMAGEPIPELINE_IMAGES_STORE = "/root/crawled_data/yna/images"
 MYIMAGEPIPELINE_DOWNLOAD_DELAY = 0.5
 MYIMAGEPIPELINE_IMAGES_URLS_FIELD = "img_src"
 MYIMAGEPIPELINE_IMAGES_RESULT_FIELD = "imgs"

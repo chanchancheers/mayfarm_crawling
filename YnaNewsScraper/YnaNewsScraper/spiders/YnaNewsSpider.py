@@ -50,19 +50,31 @@ class YnaNewsSpider(scrapy.Spider):
         depth2s = response.css(f"li.depth-box01.{depth1} dd")
         if not depth2s:
             if depth1 in ['opinion', 'visual'] :            #소주제 '전체기사'가 없는 경우
-                depth2s =response.css(f"li.depth-box02.{depth1} dd")
+                do_next =response.css(f"li.depth-box02.{depth1} dd")
+                for thing in do_next:
+                    go_to_href = thing.css('a').attrib['href']
+                    yield response.follow(go_to_href, callback=self.parse_list_first)
             elif depth1 in ['north-korea']:                   #북한인 경우 소주제 자체가 없음
-                yield response.follow(response.url, callback=self.parse_list, dont_filter=True)
+                yield response.follow(response.url, callback=self.parse_list_first, dont_filter=True)
             else:                                           #소주제가 모두 있고 태그가 없는 경우(사람들 등)
-                depth2s = response.css(f"li.depth-box02.{depth1} dd")[1:]
+                do_next = response.css(f"li.depth-box02.{depth1} dd")[1:]
+                for thing in do_next:
+                    go_to_href = thing.css('a').attrib['href']
+                    yield response.follow(go_to_href, callback=self.parse_list_first)
 
-        for depth2 in depth2s:
+        else:
+            for depth2 in depth2s[1:]:
                 go_to_href = depth2.css('a').attrib['href']
-                yield response.follow(go_to_href, callback=self.parse_list)
+                yield response.follow(go_to_href, callback=self.parse_list_first)
              
 
 
             
+    def parse_list_first(self,response):
+        default_url = response.url.split('?site')[0] + '/1'
+        yield response.follow(default_url, callback=self.parse_list)
+
+
 
     def parse_list(self, response):
         posts = response.css("div.section01 div.list-type038 ul.list li div.item-box01")
@@ -76,23 +88,34 @@ class YnaNewsSpider(scrapy.Spider):
             except:
                 thumbnail = []
             item['thumbnail_src'] = thumbnail
-            go_to_post = post.css("div.news-con a").attrib['href']
+            go_to_post = post.css("div.news-con a.tit-wrap").attrib['href']
             yield response.follow(go_to_post, callback=self.parse_post, meta={"item_with_thumbnail" : item})
         
         #pagination
         page_section = response.css("div.paging")
-        current_page = int(page_section.css("strong.num::text").get())
-
-
-        next_page_frame = response.url.split("?site")[0]
-
-        next_page = current_page+1
-
-        next_page_url = f"{next_page_frame}/{next_page}"
-        if (next_page != 20) :
-            yield response.follow(next_page_url, callback=self.parse_list)
+        pages = page_section.css('a')
+        current_page = int(response.url.split('/')[-1])
+        next_page = "/".join([x for x in response.url.split('/')[:-1]]) + f'/{current_page+1}'
+        if int(current_page) != 20 :
+            yield response.follow(next_page, callback = self.parse_list)
         else :
-            yield response.follow(next_page_url, callback=self.parse_last)
+            yield response.follow(next_page, callback = self.parse_last)
+
+        # next_page_frame = response.url.split("?site")[0]
+
+        
+
+
+        # next_page_frames = response.url.split("/")
+        # next_page_frame = "/".join([x for x in next_page_frames[:4]])
+
+        # next_page = current_page+1
+
+        # next_page_url = f"{next_page_frame}/{next_page}"
+        # if (next_page != 20) :
+        #     yield response.follow(next_page_url, callback=self.parse_list)
+        # else :
+        #     yield response.follow(next_page_url, callback=self.parse_last)
 
     def parse_post(self, response):
         item = response.meta.get("item_with_thumbnail")
@@ -116,15 +139,31 @@ class YnaNewsSpider(scrapy.Spider):
             item['headline'] = response.css("div.tit-sub h2.tit::text").get()
         else :
             item['headline'] = ''
-        try :
-            item['img_src'] = ["http:" + response.css("div.img-con span.img img").attrib["src"]]
-            item['img_alt'] = response.css("div.img-con span.img img").attrib["alt"]
-            item['img_desc'] = response.css("p.txt-desc::text").get()
-        except:
-            item['img_src'] = ''
-            item['img_alt'] = ''
-            item['img_desc'] = ''
         
+        
+        imgs = response.css("div.comp-box.photo-group")
+        if imgs :    
+            img_src_list = []
+            img_alt_list = []
+            img_desc_list = []
+            for img in imgs :
+                img_src_list.append("http:" + img.css("div.img-con span.img img").attrib['src'])
+                img_alt_list.append(img.css("div.img-con span.img img").attrib['alt'])
+                img_desc_list.append(img.css('p.txt-desc::text').get())
+            item['img_src'] = img_src_list
+            item['img_alt'] = img_alt_list
+            item['img_desc'] = img_desc_list
+        else:
+            item['img_src'] = []
+            item['img_alt'] = []
+            item['img_desc'] = []
+        
+        
+
+            
+
+
+
         #article
         articles = response.xpath('//*[@id="articleWrap"]/div[2]/div/div/article/p/text()')
         articles_list = []
@@ -142,8 +181,10 @@ class YnaNewsSpider(scrapy.Spider):
         item['depth1'] = response.xpath('//*[@id="articleWrap"]/div[1]/header/ul[1]/li/*/text()')[1].get()
         
         item['depth2'] = response.xpath('//*[@id="articleWrap"]/div[1]/header/ul[1]/li/*/text()')[2].get()
+        item['crawled_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]
 
         yield item
+
     def parse_last(self, response):
         posts = response.css("div.section01 div.list-type038 ul.list li div.item-box01")
 

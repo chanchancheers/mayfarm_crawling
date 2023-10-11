@@ -8,6 +8,7 @@ from items import MoisimgscraperItem
 class MoisImgSpider(scrapy.Spider):
     name = "MoisImg"
     home_url = "https://www.mois.go.kr"
+    response_url = "https://www.mois.go.kr/frt/bbs/type002/commonSelectBoardList.do?bbsId=BBSMSTR_000000000010"
     def start_requests(self):
 
         start_urls = [
@@ -30,26 +31,32 @@ class MoisImgSpider(scrapy.Spider):
         pagenate = response.css("div.pagenate")
         last_button_idx = int(pagenate.css("a.last").attrib['href'].split('pageIndex=')[1])
         
-        next_href = pagenate.css("a.next").attrib['href']
         current_page_idx = int(pagenate.css("a.on::text").get().strip('"'))
 
+        next_href = f'{self.response_url}&searchCnd=&searchWrd=&pageIndex={current_page_idx + 1}'
+
         print("\n\ncurrent_page_index : ", current_page_idx)
-        
-        page_cnt = len(pagenate.css("span a"))
 
-        current_on_idx = current_page_idx % 10
-
-        if (current_on_idx != page_cnt) and (current_on_idx  != 0) :
-            print("\n\nin the if - current_on_idx : ", current_on_idx)
-            page_idx_list = pagenate.css("span a")
-            goto_page_href = page_idx_list[int(current_on_idx)].css('a').attrib['href']
-            yield response.follow(goto_page_href, callback=self.parse)
+        if current_page_idx != last_button_idx :
+            yield response.follow(next_href, callback=self.parse)
         else :
-            if (current_page_idx != last_button_idx ) :
-                print("\n\nin the else - current_on_idx : ", current_on_idx)
-                yield response.follow(next_href, callback=self.parse)
-            else :
-                yield response.follow(next_href, callback=self.parse_last)
+            yield response.follow(next_href, callback=self.parse_last)
+        
+        # page_cnt = len(pagenate.css("span a"))
+
+        # current_on_idx = current_page_idx % 10
+
+        # if (current_on_idx != page_cnt) and (current_on_idx  != 0) :
+        #     print("\n\nin the if - current_on_idx : ", current_on_idx)
+        #     page_idx_list = pagenate.css("span a")
+        #     goto_page_href = page_idx_list[int(current_on_idx)].css('a').attrib['href']
+        #     yield response.follow(goto_page_href, callback=self.parse)
+        # else :
+        #     if (current_page_idx != last_button_idx ) :
+        #         print("\n\nin the else - current_on_idx : ", current_on_idx)
+        #         yield response.follow(next_href, callback=self.parse)
+        #     else :
+        #         yield response.follow(next_href, callback=self.parse_last)
 
         
     def parse_post(self, response) :
@@ -103,19 +110,12 @@ class MoisImgSpider(scrapy.Spider):
 
         yield item
 
-        # yield {
-        #         "id" : id_small,
-        #         "subject" : subject,
-        #         "created_date" : created_date,
-        #         "author" : author,
-        #         "contents" : contents_string,
-        #         "files" : files_string,
-        #         "file_names" : file_names_string,
-        #         "crawled_date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]
-        # }
         
-    def parser_last(self, response) :
+    def parse_last(self, response) :
         for image in response.css("ul.img_gallery_list li"):
+            item = MoisimgscraperItem()
+            thumbnail = image.css("img").attrib['src']
+            item['thumbnail_src'] = [self.home_url + thumbnail]
             post_href = image.css("li a").attrib['href']
-            yield response.follow(post_href, callback=self.parse_post)
+            yield response.follow(post_href, callback=self.parse_post, meta={"item_with_thumbnail" : item})
         print(f"\n\n\nParsing Every Post Done : {datetime.now()}")

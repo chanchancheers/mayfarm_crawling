@@ -13,27 +13,40 @@ from scrapy.utils.project import get_project_settings
 
 class YnanewsscraperPipeline:
 
+    count = 0
+
     def __init__(self):
         self.connection = pymysql.connect(host='localhost', user='sineuncha',password='mayfarm0830@M',db='yna_news', charset='utf8')
         self.cursor = self.connection.cursor()
 
 
     def process_item(self, item, spider):
-        newsQuery = 'INSERT INTO news (id, subject, created_date, author, headline, article, tags, depth1, depth2) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        newsQuery = '''INSERT INTO news (id, subject, created_date, author, headline, article, 
+                                        tags, depth1, depth2, thumbnail_src, thumbnail_path, crawled_date)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
         # try : #이미지가 있다
-        self.cursor.execute(newsQuery, (item['id'], item['subject'], item['created_date'], item['author'], 
+        if (item['img_src']) :
+            self.cursor.execute(newsQuery, (item['id'], item['subject'], item['created_date'], item['author'], 
                                         item['headline'], item['article'], item['tags'], 
-                                        item['depth1'], item['depth2']))
-        imageQuery = "INSERT INTO image (id, img_src, img_alt, img_desc, img_path, thumbnail_src, thumbnail_path) VALUES (%s, %s, %s, %s, %s, %s, %s)"                                                                         
-        self.cursor.execute(imageQuery, (item['id'], item['img_src'], item['img_alt'], item['img_desc'],item['imgs'][0]['path'], 
-                                                                                    item['thumbnail_src'], item['thumbnails'][0]['path']))                                                                                     
-        # except : #이미지가 없다
-        # print("\n@@@@@ no IMAGES @@@@@\n")
-        # self.cursor.execute(newsQuery, (item['id'], item['subject'], item['created_date'], item['author'], item['headline'],
-        #                                 item['article'], item['tags'], item['depth1'], item['depth2']))
+                                        item['depth1'], item['depth2'],
+                                        item['thumbnail_src'], item['thumbnails'][0]['path'],
+                                        item['crawled_date']))
         
         
-        # self.connection.commit()
+            imageQuery = "INSERT INTO image (id, file_sequence, img_src, img_alt, img_desc, img_path) VALUES (%s, %s, %s, %s, %s, %s)"
+            for i, (src, alt, desc, path) in enumerate(zip(item['img_src'], item['img_alt'], item['img_desc'], item['imgs']), start=1):
+                self.cursor.execute(imageQuery, (item['id'], i, src, alt, desc, path['path']))
+
+
+        else : #이미지가 없다
+            noImageQuery = """INSERT INTO news (id, subject, created_date, author, headline, article, tags, depth1, depth2,  crawled_date)
+                                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+            self.cursor.execute(noImageQuery, (item['id'], item['subject'], item['created_date'], item['author'], item['headline'], 
+                                                item['article'], item['tags'], item['depth1'], item['depth2'], item['crawled_date']))
+        self.count += 1
+        if self.count > 100 :
+            self.connection.commit()
+            self.count = 0
 
         return item
     

@@ -25,3 +25,4 @@ class YnanewsscraperItem(scrapy.Item):
     tags = scrapy.Field()
     depth1 = scrapy.Field()
     depth2 = scrapy.Field()
+    crawled_date = scrapy.Field()

@@ -4,10 +4,49 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import scrapy_deltafetch
+import logging
+import os
+import time
+import dbm
+
+from scrapy.http import Request
+from scrapy.item import Item
+from scrapy.utils.request import request_fingerprint
+from scrapy.utils.project import data_path
+from scrapy.utils.python import to_bytes
+from scrapy.exceptions import NotConfigured
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+
+logger = logging.getLogger(__name__)
+
+class YnanewsscraperDeltaFetchSpiderMiddleware(scrapy_deltafetch.DeltaFetch) :
+    
+    
+    threshold = 0
+
+    def process_spider_output(self, response, result, spider):
+        for r in result:
+            if isinstance(r, Request):
+                key = self._get_key(r)
+                if key in self.db and self._is_enabled_for_request(r):
+                    logger.info("Ignoring already visited: %s" % r)
+                    self.threshold += 1
+                    if self.stats:
+                        self.stats.inc_value('deltafetch/skipped', spider=spider)
+                    if not self.threshold < 10:
+                        logger.info("\n More than 10 pages already visited. Crawling has been stopped.")
+                        break
+                    continue
+            elif isinstance(r, (Item, dict)):
+                key = self._get_key(response.request)
+                self.db[key] = str(time.time())
+                if self.stats:
+                    self.stats.inc_value('deltafetch/stored', spider=spider)
+            yield r
 
 class YnanewsscraperSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,

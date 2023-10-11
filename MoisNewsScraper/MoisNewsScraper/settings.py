@@ -45,7 +45,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-   'scrapy_deltafetch.DeltaFetch' : 100,
+   'MoisNewsScraper.middlewares.MoisnewsscraperDeltaFetchSpiderMiddleware' : 100,
    "MoisNewsScraper.middlewares.MoisnewsscraperSpiderMiddleware": 543,
 }
 DELTAFETCH_ENABLED = True
@@ -67,7 +67,7 @@ DELTAFETCH_DIR = "delta"
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
-FILES_STORE = "dwnld"
+FILES_STORE = "/root/crawled_data/mois_news/dwnld"
 DOWNLOAD_DELAY = 0.5
 FILES_URLS_FIELD = "file_urls"
 FILES_RESULT_FIELD = "file_results"

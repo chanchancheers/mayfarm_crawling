@@ -44,7 +44,7 @@ ROBOTSTXT_OBEY = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-   'scrapy_deltafetch.DeltaFetch' : 100,
+   'MoisImgScraper.middlewares.MoisimgscraperDeltaFetchSpiderMiddleware' : 100,
    "MoisImgScraper.middlewares.MoisimgscraperSpiderMiddleware": 543,
 }
 DELTAFETCH_ENABLED = True
@@ -72,12 +72,12 @@ ITEM_PIPELINES = {
    "MoisImgScraper.pipelines.MyImagePipeline": 30,
    "MoisImgScraper.pipelines.MoisimgscraperPipeline": 301,
 }
-IMAGES_STORE = "images"
+IMAGES_STORE = "/root/crawled_data/mois_image/images"
 DOWNLOAD_DELAY = 0.5
 IMAGES_URLS_FIELD = "thumbnail_src"
 IMAGES_RESULT_FIELD = "thumbnails"
 
-MYIMAGEPIPELINE_IMAGES_STORE = "images"
+MYIMAGEPIPELINE_IMAGES_STORE = "/root/crawled_data/mois_image/images"
 MYIMAGEPIPELINE_DOWNLOAD_DELAY = 0.5
 MYIMAGEPIPELINE_IMAGES_URLS_FIELD = "file_urls"
 MYIMAGEPIPELINE_IMAGES_RESULT_FIELD = "imgs"

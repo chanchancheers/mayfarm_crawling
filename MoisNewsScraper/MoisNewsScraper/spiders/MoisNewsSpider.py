@@ -11,7 +11,7 @@ from items import MoisnewsscraperItem
 class MoisNewsSpider(scrapy.Spider):
     name = 'MoisNews'
     home_url = "https://www.mois.go.kr"
-
+    response_url = "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardList.do?bbsId=BBSMSTR_000000000008"
     configure_logging(install_root_handler=False)
     logging.basicConfig(
         filename='log-ERROR.txt',
@@ -31,36 +31,32 @@ class MoisNewsSpider(scrapy.Spider):
         for post in postlist:
             go_to_href = post.css("td.l a").attrib['href']
             yield response.follow(go_to_href, callback=self.parse_post)
-        
+
 
         pagenate = response.css("div.pagenate")
         last_button_idx = int(pagenate.css("a.last").attrib['href'].split('pageIndex=')[1])
         
-        next_href = pagenate.css("a.next").attrib['href']
         current_page_idx = int(pagenate.css("a.on::text").get().strip('"'))
 
+        next_href = f'{self.response_url}&searchCnd=&searchWrd=&pageIndex={current_page_idx + 1}'
+
         print("\n\ncurrent_page_index : ", current_page_idx)
-        
-        page_cnt = len(pagenate.css("span a"))
 
-        current_on_idx = current_page_idx % 10
-
-        if (current_on_idx != page_cnt) and (current_on_idx  != 0) :
-            print("\n\nin the if - current_on_idx : ", current_on_idx)
-            page_idx_list = pagenate.css("span a")
-            goto_page_href = page_idx_list[int(current_on_idx)].css('a').attrib['href']
-            yield response.follow(goto_page_href, callback=self.parse_list)
+        if current_page_idx != last_button_idx :
+            yield response.follow(next_href, callback=self.parse_list)
         else :
-            if (current_page_idx != last_button_idx ) :
-                print("\n\nin the else - current_on_idx : ", current_on_idx)
-                yield response.follow(next_href, callback=self.parse_list)
-            else :
-                yield response.follow(next_href, callback=self.parser_last)
+            yield response.follow(next_href, callback=self.parse_last)
+
+
 
     def parse_post(self, response):
         #제목    
         subject = response.css("h4.subject::text").get().strip()
-        subject_desc = response.css("h4.subject span.sub_desc::text").get().strip()
+        if response.css("h4.subject span.sub_desc::text").get() != None :
+            subject_desc = response.css("h4.subject span.sub_desc::text").get().strip()
+        else :
+            subject_desc = ""
+
 
         lst = response.xpath('//*[@id="print_area"]/form/div/div[2]/text()')
         lst2 = []

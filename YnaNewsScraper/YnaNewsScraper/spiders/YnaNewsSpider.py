@@ -5,13 +5,14 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from items import YnanewsscraperItem
 import logging
-from scrapy.utils.log import configure_logging 
+# from scrapy.utils.log import configure_logging
+# from scrapy.crawler import CrawlerProcess
+# from scrapy.crawler import CrawlerRunner
+from scrapy.utils.project import get_project_settings
 import re
 
 class YnaNewsSpider(scrapy.Spider):
     name= "YnaNews"
-
-    configure_logging(install_root_handler=False)
     logging.basicConfig(
         filename='log-ERROR.txt',
         format='%(levelname)s: %(message)s',
@@ -158,12 +159,6 @@ class YnaNewsSpider(scrapy.Spider):
             item['img_alt'] = []
             item['img_desc'] = []
         
-        
-
-            
-
-
-
         #article
         articles = response.xpath('//*[@id="articleWrap"]/div[2]/div/div/article/p/text()')
         articles_list = []
@@ -201,3 +196,189 @@ class YnaNewsSpider(scrapy.Spider):
             yield response.follow(go_to_post, callback=self.parse_post, meta={"item_with_thumbnail" : item})
         
         print("One of the Spiders in YnaNews Finished")
+
+
+class NorthKoreaSpider(YnaNewsSpider) :
+    name = "north-korea"
+
+    def start_requests(self):
+        start_urls = [
+            'https://www.mois.go.kr/frt/bbs/type002/commonSelectBoardList.do?bbsId=BBSMSTR_000000000010',
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class PoliticsSpider(YnaNewsSpider) :
+    name = "politics"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/politics/index?site=navi_politics_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class EconomySpider(YnaNewsSpider) :
+    name = "economy"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/economy/index?site=navi_economy_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class IndustrySpider(YnaNewsSpider) :
+    name = "industry"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/industry/index?site=navi_industry_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class SocietySpider(YnaNewsSpider) :
+    name = "society"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/society/index?site=navi_society_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class LocalnewsSpider(YnaNewsSpider) :
+    name = "local"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/local/index?site=navi_local_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class InternationalnewsSpider(YnaNewsSpider) :
+    name = "international"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/international/index?site=navi_international_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class CultureSpider(YnaNewsSpider) :
+    name = "culture"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/culture/index?site=navi_culture_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class LifestyleSpider(YnaNewsSpider) :
+    name = "lifestyle"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/lifestyle/index?site=navi_lifestyle_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class EntertainmentSpider(YnaNewsSpider) :
+    name = "entertainment"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/entertainment/index?site=navi_entertainment_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class SportsSpider(YnaNewsSpider) :
+    name = "sports"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/sports/index?site=navi_sports_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class OpinionSpider(YnaNewsSpider) :
+    name = "opinion"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/opinion/index?site=navi_opinion_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class PeopleSpider(YnaNewsSpider) :
+    name = "people"
+
+    def start_requests(self):
+        start_urls = [
+            "https://www.yna.co.kr/people/index?site=navi_people_depth01",
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+class Spider(YnaNewsSpider) :
+    name = ""
+
+    def start_requests(self):
+        start_urls = [
+    
+        ]
+        for url in start_urls:
+            yield scrapy.Request(url=url, callback=self.parse_depth1)
+
+
+
+
+# configure_logging()
+# runner = CrawlerRunner()
+
+# @defer.inlineCallbacks
+# def crawl():
+#     yield runner.crawl(NorthKoreaSpider)
+#     yield runner.crawl(PoliticsSpider)
+#     reactor.stop()
+# crawl()
+# reactor.run()
+
+# def start_sequentially(process: CrawlerProcess, crawlers: list):
+#     print('start crawler {}'.format(crawlers[0].__name__))
+#     deferred = process.crawl(crawlers[0])
+#     # if len(crawlers) > 1:
+#     #     deferred.addCallback(lambda _: start_sequentially(process, crawlers[1:]))
+
+
+# crawlers = [PoliticsSpider, NorthKoreaSpider]
+# process = CrawlerProcess(settings=get_project_settings())
+# start_sequentially(process, crawlers)
+# process.start()
+
+
+
+# settings = get_project_settings()
+# process = CrawlerProcess(settings)
+# process.crawl(NorthKoreaSpider)
+# process.crawl(PoliticsSpider)
+# process.crawl(EconomySpider)
+# process.crawl(IndustrySpider)
+# process.crawl(SocietySpider)
+# process.crawl(CultureSpider)
+# process.crawl(LifestyleSpider)
+# process.crawl(EntertainmentSpider)
+# process.crawl(SportsSpider)
+# process.crawl(OpinionSpider)
+# process.crawl(LocalnewsSpider)
+# process.crawl(InternationalnewsSpider)
+# process.crawl(PeopleSpider)
+# process.start()

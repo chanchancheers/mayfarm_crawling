@@ -21,10 +21,10 @@ from scrapy.exceptions import NotConfigured
 from itemadapter import is_item, ItemAdapter
 
 
+
 logger = logging.getLogger(__name__)
 
 class YnanewsscraperDeltaFetchSpiderMiddleware(scrapy_deltafetch.DeltaFetch) :
-    
     
     threshold = 0
 
